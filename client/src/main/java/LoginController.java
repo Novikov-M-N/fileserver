@@ -19,25 +19,36 @@ public class LoginController {
     public void login() {
         String login = loginTextField.getText();
         String password = passwordField.getText();
-        if(Connection.checkLoginPassword(login,password)){
-            validLogin(login);
-        } else {
-            invalidLogin();
+        switch (Connection.checkLoginPassword(login,password)) {
+            case ACCESS_IS_ALLOWED:
+                mainController.setLogin(login);
+                Stage stage = (Stage)infoLabel.getScene().getWindow();
+                stage.close();
+                break;
+            case WRONG_LOGIN_PASSWORD:
+                invalidLogin("Неверный логин или пароль");
+                break;
+            case USER_IS_ALREADY_LOGGED_IN:
+                invalidLogin("Пользователь " + login + " уже вошёл на сервер");
+                break;
+            case UNKNOWN_ERROR:
+                invalidLogin("Сервер отправил неизвестную ошибку");
+                break;
+            case SERVER_NOT_RESPOND:
+                invalidLogin("Сервер не отвечает. Возможно, медленное соединение");
+                break;
+            default:
+                invalidLogin("Неведомая фигня приключилась. Попробуй ещё раз");
+                break;
         }
     }
 
     public void setMainController(MainController mainController) {this.mainController = mainController;}
 
-    public void validLogin(String login) {
-        mainController.setLogin(login);
-        Stage stage = (Stage)infoLabel.getScene().getWindow();
-        stage.close();
-    }
-
-    private void invalidLogin() {
+    private void invalidLogin(String message) {
         Alert invalidLoginAlert = new Alert(Alert.AlertType.ERROR);
         invalidLoginAlert.setTitle("Ошибка аутентификации");
-        invalidLoginAlert.setHeaderText("Неверный логин или пароль");
+        invalidLoginAlert.setHeaderText(message);
         invalidLoginAlert.setContentText(null);
         invalidLoginAlert.showAndWait();
         passwordField.clear();

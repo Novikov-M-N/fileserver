@@ -7,7 +7,7 @@ public class Security {
         int confirmCode = 0;
         char[] passArray = password.toCharArray();
         for (int i = 0; i < password.length(); i++) {
-            confirmCode += (passArray[i] * 2 + passArray[0]);
+            confirmCode += (passArray[i] * 2 + passArray[0]) + requestCode % 8;
         }
         return confirmCode;
     }

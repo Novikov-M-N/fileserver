@@ -1,38 +1,48 @@
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Map;
+
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 
 public class Connection {
     static Socket socket;
-    static ObjectDecoderInputStream inputStream;
-    static ObjectEncoderOutputStream outputStream;
+    static ObjectDecoderInputStream is;
+    static ObjectEncoderOutputStream os;
+    private String login = "";
+    private static String password = "";
+    private static LoginCases loginCase;
 
     public Connection(String host, int port) {
         try {
             socket = new Socket(host,port);
-            inputStream = new ObjectDecoderInputStream(socket.getInputStream());
-            outputStream = new ObjectEncoderOutputStream(socket.getOutputStream());
+            System.out.println("socket");
+            is = new ObjectDecoderInputStream(socket.getInputStream());
+            System.out.println("input stream");
+            os = new ObjectEncoderOutputStream(socket.getOutputStream());
+            System.out.println("output stream");
+            new Thread(new InputProcessor(this, is)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static boolean checkLoginPassword(String login, String password) {
+    public static LoginCases checkLoginPassword(String login, String password) {
+        loginCase = LoginCases.SERVER_NOT_RESPOND;
+        Connection.password = password;
         try {
-            outputStream.writeObject(new LoginRequestMessage(login));
-            PasswordRequestMessage passwordRequestMessage = (PasswordRequestMessage) inputStream.readObject();
-            System.out.println(passwordRequestMessage.getCode());
+            os.writeObject(new Packet(Commands.authrequest)
+                    .addParam("-login", login));
+            Thread.sleep(1000);
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+            return LoginCases.UNKNOWN_ERROR;
+        } catch (InterruptedException e) {
             e.printStackTrace();
+            return LoginCases.UNKNOWN_ERROR;
         }
-        return login.equals("admin") && password.equals("admin");
+        return loginCase;
     }
 
     public ArrayList<String> getServerList() {
@@ -51,5 +61,25 @@ public class Connection {
         clientList.add("clientFile3");
         clientList.add("clientFile4");
         return clientList;
+    }
+
+    public void commandExecutor(Commands command, Map<String, Object> params) {
+        switch (command) {
+            case passwrequestcode:
+                int passwordRequestCode = (int)params.get("-code");
+                int passwordConfirmCode = Security.passwordConfirmCode(password,passwordRequestCode);
+                try {
+                    os.writeObject(new Packet(Commands.passwconfirmcode)
+                        .addParam("-code", passwordConfirmCode));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case loginanswer:
+                LoginCases answer = (LoginCases)params.get("-answ");
+                Connection.loginCase = answer;
+                break;
+
+        }
     }
 }

@@ -9,10 +9,24 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
-import java.util.logging.FileHandler;
+import java.util.ArrayList;
 
 public class Server {
+    private Server server;
+    private int clientCounter = 0;
+    private ArrayList<String> logins;
+
+    public void addLogin(String login) {this.logins.add(login);}
+    public void rmLogin(String login) {this.logins.remove(login);}
+    public boolean loginExist(String login) {return logins.contains(login);}
+
+    public static void log(String message) {
+        System.out.println(message);
+    };
+
     public Server() {
+        this.server = this;
+        logins = new ArrayList<String>();
         EventLoopGroup boss = new NioEventLoopGroup();
         EventLoopGroup worker = new NioEventLoopGroup();
         try {
@@ -22,11 +36,14 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            if (clientCounter == Integer.MAX_VALUE) { clientCounter = 1; } else { clientCounter++; }
+                            int clientNumber = clientCounter;
+                            log("Client #" + clientNumber + ": connected");
                             socketChannel.pipeline().addLast(
                                     new ObjectEncoder(),
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
-                                    new CommandHandler(),
-                                    new FileTransferHandler()
+//                                    new CommandHandler(),
+                                    new PacketProcessorHandler(server, clientNumber)
                             );
                         }
                     });
