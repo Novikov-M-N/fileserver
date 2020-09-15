@@ -24,7 +24,12 @@ public class Packet implements Serializable {
 
     @Override
     public String toString() {
-        String s = "<" + command.toString() + "> " + param.toString();
-        return s;
+        StringBuilder sb = new StringBuilder();
+        sb
+                .append("[")
+                .append(command.toString())
+                .append("] ")
+                .append(param.toString());
+        return sb.toString();
     }
 }

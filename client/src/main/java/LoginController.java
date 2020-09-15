@@ -19,7 +19,7 @@ public class LoginController {
     public void login() {
         String login = loginTextField.getText();
         String password = passwordField.getText();
-        switch (Connection.checkLoginPassword(login,password)) {
+        switch (mainController.getConnection().checkLoginPassword(login,password)) {
             case ACCESS_IS_ALLOWED:
                 mainController.setLogin(login);
                 Stage stage = (Stage)infoLabel.getScene().getWindow();

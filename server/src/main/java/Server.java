@@ -36,13 +36,16 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            if (clientCounter == Integer.MAX_VALUE) { clientCounter = 1; } else { clientCounter++; }
+                            if (clientCounter == Integer.MAX_VALUE) {
+                                clientCounter = 1;
+                            } else {
+                                clientCounter++;
+                            }
                             int clientNumber = clientCounter;
-                            log("Client #" + clientNumber + ": connected");
+                            log("Client #" + clientNumber + " (): connected");
                             socketChannel.pipeline().addLast(
                                     new ObjectEncoder(),
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
-//                                    new CommandHandler(),
                                     new PacketProcessorHandler(server, clientNumber)
                             );
                         }

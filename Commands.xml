@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<commands>
+    <command>
+        <name>authrequest</name>
+        <description>Запрос от клиента на авторизацию пользователя</description>
+        <parameters>
+            <parameter>
+                <name>-login</name>
+                <class>String</class>
+                <description>Логин, под которым хочет зайти пользователь</description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>passwrequestcode</name>
+        <description>
+            Код запроса для подтверждения пароля. Отправляется сервером в ответ на запрос авторизации
+        </description>
+        <parameters>
+            <parameter>
+                <name>-code</name>
+                <class>int</class>
+                <description>Код запроса</description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>passwconfirmcode</name>
+        <description>
+            Код подтверждения пароля. Отправляется клиентом в ответ на код запроса от сервера
+        </description>
+        <parameters>
+            <parameter>
+                <name>-code</name>
+                <class>int</class>
+                <description>Код подтверждения</description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>loginanswer</name>
+        <description>
+            Решение сервера по авторизации клиента.
+        </description>
+        <parameters>
+            <parameter>
+                <name>-answ</name>
+                <class>LoginCases</class>
+                <description>Допуск либо не допуск с указанием причины</description>
+            </parameter>
+        </parameters>
+    </command>
+</commands>

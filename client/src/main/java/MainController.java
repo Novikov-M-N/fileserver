@@ -33,9 +33,7 @@ public class MainController {
     private Button sendButton;  //???Кнопка отправки текстовой команды в консоль
 
     @FXML
-    public void stop() {
-        System.out.println("Program stopped");
-    }   //???
+    public void stop() {}   //???
 
     //Печатает строку в консоль
     private void consolePrint(String string) {
@@ -128,6 +126,7 @@ public class MainController {
         LoginController loginController = loader.getController();
         loginController.setMainController(this);
         loginStage.setOnCloseRequest(event -> {
+            connection.stop();
             Platform.exit();
         });
         loginStage.showAndWait();

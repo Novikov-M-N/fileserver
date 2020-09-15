@@ -1,4 +1,5 @@
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.Random;
@@ -11,8 +12,13 @@ public class PacketProcessorHandler extends SimpleChannelInboundHandler<Packet> 
     private String requestLogin = "";
     private String login = "";
 
-    public void log(String message) {
+    private void log(String message) {
         System.out.println("Client #" + clientNumber + " (" + login + "): " + message);
+    }
+
+    private void send(ChannelHandlerContext ctx, Packet packet) {
+        ctx.writeAndFlush(packet);
+        log(">>> " + packet.toString());
     }
 
     public PacketProcessorHandler(Server server, int clientNumber) {
@@ -21,38 +27,45 @@ public class PacketProcessorHandler extends SimpleChannelInboundHandler<Packet> 
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        server.rmLogin(login);
+        log("disconnected");
+        super.channelInactive(ctx);
+    }
+
+    @Override
     protected void messageReceived(ChannelHandlerContext ctx, Packet packet) throws Exception {
-        log(packet.toString());
+        log("<< " + packet.toString());
         Commands command = packet.getCommand();
         switch (command) {
             case authrequest:
                 requestLogin = (String)packet.getParam("-login");
                 if (server.loginExist(requestLogin)) {
-                    ctx.writeAndFlush(new Packet(Commands.loginanswer)
+                    send(ctx,new Packet(Commands.loginanswer)
                                 .addParam("-answ",LoginCases.USER_IS_ALREADY_LOGGED_IN));
                 } else {
                     Random random = new Random();
                     passwordRequestCode = random.nextInt(1023) + 1;
-                    log("Password request code from server: " + passwordRequestCode);
                     passwordConfirmCode = Security.passwordConfirmCode("admin", passwordRequestCode);
-                    log("Password confirm code from server: " + passwordConfirmCode);
-                    ctx.writeAndFlush(
-                            new Packet(Commands.passwrequestcode).addParam("-code", passwordRequestCode));
+                    send(ctx, new Packet(Commands.passwrequestcode)
+                                    .addParam("-code", passwordRequestCode));
                 }
                 break;
             case passwconfirmcode:
                 if ((int)packet.getParam("-code") == passwordConfirmCode) {
                     login = requestLogin;
                     server.addLogin(login);
-                    ctx.writeAndFlush(
-                            new Packet(Commands.loginanswer)
+                    log("logged successful");
+                    send(ctx, new Packet(Commands.loginanswer)
                                     .addParam("-answ", LoginCases.ACCESS_IS_ALLOWED));
                 } else {
                     log("invalid password confirm code from client");
-                    ctx.writeAndFlush(
-                            new Packet(Commands.loginanswer)
+                    send(ctx, new Packet(Commands.loginanswer)
                                     .addParam("-answ", LoginCases.WRONG_LOGIN_PASSWORD));
                 }
+                break;
+            case disconnect:
+                send(ctx, new Packet(Commands.disconnect));
                 break;
             default:
                 log("unknown command");

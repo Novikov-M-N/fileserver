@@ -1,4 +1,6 @@
+import com.sun.javafx.collections.MappingChange;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,10 +19,16 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("main.fxml"));
+        Parent root = loader.load();
         primaryStage.setTitle("Файловый сервер");
         primaryStage.setScene(new Scene(root, 600, 400));
         setStageSize(primaryStage, 600, 400);
+        primaryStage.setOnCloseRequest(event -> {
+            MainController mainController = loader.getController();
+            mainController.getConnection().stop();
+            Platform.exit();
+        });
         primaryStage.show();
 
     }

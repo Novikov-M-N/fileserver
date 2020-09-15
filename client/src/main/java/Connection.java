@@ -7,12 +7,28 @@ import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 
 public class Connection {
-    static Socket socket;
-    static ObjectDecoderInputStream is;
-    static ObjectEncoderOutputStream os;
+    private Socket socket;
+    private ObjectDecoderInputStream is;
+    private ObjectEncoderOutputStream os;
+    private InputProcessor inputProcessor;
     private String login = "";
-    private static String password = "";
-    private static LoginCases loginCase;
+    private String password = "";
+    private LoginCases loginCase;
+
+    public InputProcessor getInputProcessor() { return inputProcessor; }
+
+    public void send(Packet packet) throws IOException {
+        System.out.println(">>> " + packet);
+        os.writeObject(packet);
+    }
+
+    public void stop() {
+        try {
+            send(new Packet(Commands.disconnect));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public Connection(String host, int port) {
         try {
@@ -22,17 +38,18 @@ public class Connection {
             System.out.println("input stream");
             os = new ObjectEncoderOutputStream(socket.getOutputStream());
             System.out.println("output stream");
-            new Thread(new InputProcessor(this, is)).start();
+            this.inputProcessor = new InputProcessor(this,is);
+            new Thread(inputProcessor).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static LoginCases checkLoginPassword(String login, String password) {
+    public LoginCases checkLoginPassword(String login, String password) {
+        this.password = password;
         loginCase = LoginCases.SERVER_NOT_RESPOND;
-        Connection.password = password;
         try {
-            os.writeObject(new Packet(Commands.authrequest)
+            send(new Packet(Commands.authrequest)
                     .addParam("-login", login));
             Thread.sleep(1000);
         } catch (IOException e) {
@@ -66,20 +83,27 @@ public class Connection {
     public void commandExecutor(Commands command, Map<String, Object> params) {
         switch (command) {
             case passwrequestcode:
-                int passwordRequestCode = (int)params.get("-code");
-                int passwordConfirmCode = Security.passwordConfirmCode(password,passwordRequestCode);
+                int passwordConfirmCode = Security.passwordConfirmCode(password,(int)params.get("-code"));
                 try {
-                    os.writeObject(new Packet(Commands.passwconfirmcode)
+                    send(new Packet(Commands.passwconfirmcode)
                         .addParam("-code", passwordConfirmCode));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 break;
             case loginanswer:
-                LoginCases answer = (LoginCases)params.get("-answ");
-                Connection.loginCase = answer;
+                loginCase = (LoginCases)params.get("-answ");
                 break;
-
+            case disconnect:
+                try {
+                    os.close();
+                    is.close();
+                    socket.close();
+                    System.out.println("disconnected");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 }
