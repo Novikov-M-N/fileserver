@@ -18,7 +18,7 @@ public class InputProcessor implements Runnable{
         while (true) {
             try {
                 Packet packet = (Packet) is.readObject();
-                System.out.println("<<< " + packet);
+                System.out.println("<- " + packet);
                 Commands commmand = packet.getCommand();
                 Map<String, Object> params = packet.getParams();
                 connection.commandExecutor(commmand, params);
