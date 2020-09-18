@@ -8,5 +8,5 @@ public enum Commands {
     ls,
     filelist,
     cd,
-    cd_ok;
+    cd_ok, cp, bytedata;
 }

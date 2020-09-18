@@ -17,6 +17,7 @@ public class Connection {
     private String password = "";
     private LoginCases loginCase;
     private List<FileMetadata> serverList;
+    private MainController mainController;
 
     //Набор флагов для отслеживания наличия ответов от сервера
     private Map<String, Boolean> flags = new HashMap<>();
@@ -52,7 +53,7 @@ public class Connection {
         }
     }
 
-    public Connection(String host, int port) {
+    public Connection(String host, int port, MainController mainController) {
         try {
             socket = new Socket(host,port);
             System.out.println("socket");
@@ -66,6 +67,7 @@ public class Connection {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.mainController = mainController;
     }
 
     /**
@@ -116,10 +118,17 @@ public class Connection {
     public void changeCurrentDirectory(String directory) {
         flags.put("changeDirectoryFlag", false);
         try {
-            send(new Packet(Commands.cd)
-                    .addParam("-directory", directory));
+            send(new Packet(Commands.cd).addParam("-directory", directory));
             wait(200, 40,"changeDirectoryFlag");
         } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void copyFile(String fileName) {
+        try {
+            send(new Packet(Commands.cp).addParam("-name",fileName));
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -163,6 +172,13 @@ public class Connection {
                 break;
             case cd_ok:
                 flags.put("changeDirectoryFlag", true);
+                break;
+            case bytedata:
+                String name = (String) params.get("-name");
+                byte[] data = (byte[]) params.get("-data");
+                this.mainController.getFileManager().writeToFile(name, data, true);
+                break;
         }
     }
+
 }

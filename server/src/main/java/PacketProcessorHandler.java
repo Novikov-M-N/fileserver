@@ -3,6 +3,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.Random;
 
+import static java.lang.Byte.parseByte;
+
 public class PacketProcessorHandler extends SimpleChannelInboundHandler<Packet> {
     private Server server;
     private int clientNumber;
@@ -78,8 +80,27 @@ public class PacketProcessorHandler extends SimpleChannelInboundHandler<Packet> 
                 serverFileManager.changeCurrentDirectory((String) packet.getParam("-directory"));
                 send(ctx, new Packet(Commands.cd_ok));
                 break;
+            case cp:
+                String name = (String) packet.getParam("-name");
+                serverFileManager.setCurrentFile(name);
+                int bufferLength = 524288;
+                int readBytes = bufferLength;
+                byte[] buffer = new byte[bufferLength];
+                while (readBytes == bufferLength) {
+                    readBytes = serverFileManager.read(buffer);
+                    if (readBytes == -1) { break; }
+                    if (readBytes != bufferLength) {
+                        byte[] lastBuffer = new byte[readBytes];
+                        System.arraycopy(buffer,0,lastBuffer,0,readBytes);
+                        buffer = lastBuffer;
+                    }
+                    send(ctx, new Packet(Commands.bytedata)
+                            .addParam("-name", name)
+                            .addParam("-data", buffer)
+                    );
+                }
             default:
-                log("unknown command");
+                log("unknown command: " + command);
                 break;
         }
     }

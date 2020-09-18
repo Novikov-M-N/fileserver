@@ -116,13 +116,14 @@ public class MainController {
         clientFileList.addAll(getFileList(fileManager.getFileList()));
     }
 
-    public Connection getConnection() {return this.connection;}
+    public Connection getConnection() { return this.connection; }
+    public FileManager getFileManager() { return this.fileManager; }
 
     public void setLogin(String login) {this.login = login;}
 
     @FXML
     public void initialize() {
-        this.connection = new Connection("localhost", 8189);
+        this.connection = new Connection("localhost", 8189, this);
         consolePrint("Соединение с localhost:8189");
         this.fileManager = new FileManager();
         try {
@@ -142,16 +143,22 @@ public class MainController {
         TableView.TableViewSelectionModel<FileListItem> serverFileListSelectionModel = serverFileListTableView
                 .getSelectionModel();
         serverFileListSelectionModel.selectedItemProperty()
-                .addListener((value, oldValue, newValue) -> serverSelectedFile = newValue);
+                .addListener((value, oldValue, newValue) -> {if(newValue != null) serverSelectedFile = newValue; });
         serverFileListTableView.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER && serverSelectedFile.getIsDirectory()) {
-                System.out.println("Переход в директорию " + serverSelectedFile.getFileName());
-            }
-        });
-        serverFileListTableView.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER && serverSelectedFile.getIsDirectory()) {
-                connection.changeCurrentDirectory(serverSelectedFile.getFileName());
-                updateFileLists();
+            switch (keyEvent.getCode()) {
+                case ENTER:
+                    if (serverSelectedFile.getIsDirectory()) {
+                        connection.changeCurrentDirectory(serverSelectedFile.getFileName());
+                    }
+                    updateFileLists();
+                    break;
+                case F5:
+                    if (!serverSelectedFile.getIsDirectory()) {
+                        fileManager.createFile(serverSelectedFile.getFileName());
+                        connection.copyFile(serverSelectedFile.getFileName());
+                    }
+                    updateFileLists();
+                    break;
             }
         });
 
@@ -161,11 +168,15 @@ public class MainController {
         TableView.TableViewSelectionModel<FileListItem> clientFileListSelectionModel = clientFileListTableView
                 .getSelectionModel();
         clientFileListSelectionModel.selectedItemProperty()
-                .addListener((value, oldValue, newValue) -> clientSelectedFile = newValue);
+                .addListener((value, oldValue, newValue) -> { if (newValue != null) clientSelectedFile = newValue; });
         clientFileListTableView.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER && clientSelectedFile.getIsDirectory()) {
-                fileManager.changeCurrentDirectory(clientSelectedFile.getFileName());
-                updateFileLists();
+            switch (keyEvent.getCode()) {
+                case ENTER:
+                    if(clientSelectedFile.getIsDirectory()) {
+                        fileManager.changeCurrentDirectory(clientSelectedFile.getFileName());
+                    }
+                    updateFileLists();
+                    break;
             }
         });
 
