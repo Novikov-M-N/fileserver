@@ -3,5 +3,10 @@ public enum Commands {
     passwrequestcode,
     passwconfirmcode,
     loginanswer,
-    disconnect;
+    loginconfirm,
+    disconnect,
+    ls,
+    filelist,
+    cd,
+    cd_ok, cp, bytedata;
 }

@@ -40,13 +40,60 @@
     <command>
         <name>loginanswer</name>
         <description>
-            Решение сервера по авторизации клиента.
+            Решение сервера по авторизации клиента
         </description>
         <parameters>
             <parameter>
                 <name>-answ</name>
                 <class>LoginCases</class>
                 <description>Допуск либо не допуск с указанием причины</description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>loginconfirm</name>
+        <description>
+            Подтверждение от клиента, что он получил одобрение авторизации
+        </description>
+        <parameters>
+            <parameter>
+                <name>-login</name>
+                <class>String</class>
+                <description>Логин, под которым залогинился клиент</description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>disconnect</name>
+        <description>
+            Разрыв соединения
+        </description>
+        <parameters>
+        </parameters>
+    </command>
+    <command>
+        <name>ls</name>
+        <description>
+            Запрос списка файлов
+        </description>
+        <parameters>
+            <parameter>
+                <name></name>
+                <class></class>
+                <description></description>
+            </parameter>
+        </parameters>
+    </command>
+    <command>
+        <name>filelist</name>
+        <description>
+            Список файлов
+        </description>
+        <parameters>
+            <parameter>
+                <name>-files</name>
+                <class>ArrayList&lt;Files&gt;</class>
+                <description>Список файлов</description>
             </parameter>
         </parameters>
     </command>
