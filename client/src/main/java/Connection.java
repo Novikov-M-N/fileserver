@@ -107,21 +107,21 @@ public class Connection {
         try {
             send(new Packet(Commands.ls));//Запрос от сервера списка файлов в текущей директории
             wait(200,40,"fileListFlag");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return serverList;
     }
 
-    public ArrayList<String> getClientList() {
-        ArrayList<String> clientList = new ArrayList();
-        clientList.add("clientFile1");
-        clientList.add("clientFile2");
-        clientList.add("clientFile3");
-        clientList.add("clientFile4");
-        return clientList;
+    public void changeCurrentDirectory(String directory) {
+        flags.put("changeDirectoryFlag", false);
+        try {
+            send(new Packet(Commands.cd)
+                    .addParam("-directory", directory));
+            wait(200, 40,"changeDirectoryFlag");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -161,6 +161,8 @@ public class Connection {
                 serverList.addAll((List<FileMetadata>)params.get("-files"));
                 flags.put("fileListFlag",true);
                 break;
+            case cd_ok:
+                flags.put("changeDirectoryFlag", true);
         }
     }
 }

@@ -6,5 +6,7 @@ public enum Commands {
     loginconfirm,
     disconnect,
     ls,
-    filelist;
+    filelist,
+    cd,
+    cd_ok;
 }

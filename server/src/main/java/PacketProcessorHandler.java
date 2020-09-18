@@ -74,6 +74,10 @@ public class PacketProcessorHandler extends SimpleChannelInboundHandler<Packet> 
                 send(ctx, new Packet(Commands.filelist)
                         .addParam("-files", serverFileManager.getFileList()));
                 break;
+            case cd:
+                serverFileManager.changeCurrentDirectory((String) packet.getParam("-directory"));
+                send(ctx, new Packet(Commands.cd_ok));
+                break;
             default:
                 log("unknown command");
                 break;

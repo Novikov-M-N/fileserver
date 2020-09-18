@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FileManager {
+    //Имя директории, по которому нужно перейти в каталог выше
+    protected static final String STEP_OUT = "..";
+
     protected String currentPath;
     protected List<File> files;
 
@@ -23,14 +26,20 @@ public class FileManager {
     public List<FileMetadata> getFileList() {
         List<FileMetadata> fileList = new ArrayList<>();
         updateFiles();
+        fileList.add(new FileMetadata("..",true,0));
         for (File file: files) {
             fileList.add(new FileMetadata(file.getName(),file.isDirectory(),file.length()));
         }
         return fileList;
     }
 
-    public void stepInto(String directory) {
-        currentPath = currentPath + File.separator + directory;
-        System.out.println(currentPath);
+    public void changeCurrentDirectory(String directory) {
+        if (directory.equals(STEP_OUT)) { currentPath = stepOutDirectory(); }
+        else { currentPath = currentPath + File.separator + directory; }
+//        System.out.println(currentPath);
+    }
+
+    protected String stepOutDirectory() {
+        return new File(currentPath).getParent();
     }
 }

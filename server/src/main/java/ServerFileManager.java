@@ -19,4 +19,10 @@ public class ServerFileManager extends FileManager{
 //        System.out.println("root path: " + rootPath);
         new File(rootPath).mkdirs();
     }
+
+    @Override
+    protected String stepOutDirectory() {
+        if (currentPath.equals(rootPath)) { return currentPath; }
+        return super.stepOutDirectory();
+    }
 }

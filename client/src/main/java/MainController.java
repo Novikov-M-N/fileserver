@@ -1,7 +1,5 @@
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -150,6 +148,12 @@ public class MainController {
                 System.out.println("Переход в директорию " + serverSelectedFile.getFileName());
             }
         });
+        serverFileListTableView.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER && serverSelectedFile.getIsDirectory()) {
+                connection.changeCurrentDirectory(serverSelectedFile.getFileName());
+                updateFileLists();
+            }
+        });
 
         clientFileListTableView.setItems(clientFileList);
         clientFileNameTableColumn.setCellValueFactory(new PropertyValueFactory("itemName"));
@@ -160,7 +164,7 @@ public class MainController {
                 .addListener((value, oldValue, newValue) -> clientSelectedFile = newValue);
         clientFileListTableView.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER && clientSelectedFile.getIsDirectory()) {
-                fileManager.stepInto(clientSelectedFile.getFileName());
+                fileManager.changeCurrentDirectory(clientSelectedFile.getFileName());
                 updateFileLists();
             }
         });
